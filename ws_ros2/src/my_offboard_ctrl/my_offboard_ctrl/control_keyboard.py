@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, DurabilityPolicy
@@ -9,6 +8,20 @@ from px4_msgs.msg import OffboardControlMode, TrajectorySetpoint, VehicleCommand
 import cv2
 from .gzcam import GzCam
 import threading
+
+import sys
+import termios
+import tty
+
+def get_key():
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setraw(fd)
+        key = sys.stdin.read(1)
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    return key
 
 
 class OffboardControl(Node):
@@ -45,8 +58,40 @@ class OffboardControl(Node):
         self.vehicle_status = VehicleStatus()
         self.takeoff_height = -1.5
 
+        #keyboard control
+        self.x = 0.0
+        self.y = 0.0
+        self.z = -1.5
+        self.step = 0.2
+
         # Create a timer to publish control commands
         self.timer = self.create_timer(0.1, self.timer_callback)
+    
+    def keyboard_loop(self):
+        while True:
+            key = get_key()
+
+            if key == 'z':
+                self.x += self.step
+            elif key == 's':
+                self.x -= self.step
+            elif key == 'q':
+                self.y += self.step
+            elif key == 'd':
+                self.y -= self.step
+            elif key == 'i': 
+                self.z -= self.step
+            elif key == 'k': 
+                self.z += self.step
+            elif key == 'a':
+                self.land()
+            elif key == 't':
+                self.arm()
+                self.engage_offboard_mode()
+            elif key == '\x03':  # CTRL+C
+                break
+
+            self.get_logger().info(f"Target: {self.x}, {self.y}, {self.z}")
 
     def vehicle_local_position_callback(self, vehicle_local_position):
         """Callback function for vehicle_local_position topic subscriber."""
@@ -125,8 +170,7 @@ class OffboardControl(Node):
             self.engage_offboard_mode()
             self.arm()
 
-        # FORCER le setpoint (test)
-        self.publish_position_setpoint(0.0, 0.0, -1.5)
+        self.publish_position_setpoint(self.x, self.y, self.z)
 
         self.offboard_setpoint_counter += 1
 
@@ -143,11 +187,20 @@ def launch_cam_receiver():
 def main(args=None) -> None:
     print('Starting camera...')
     cam_thread = threading.Thread(target=launch_cam_receiver)
+    cam_thread.daemon = True
     cam_thread.start()
 
     print('Starting offboard control node...')
     rclpy.init(args=args)
+
     offboard_control = OffboardControl()
+
+    keyboard_thread = threading.Thread(
+        target=offboard_control.keyboard_loop
+    )
+    keyboard_thread.daemon = True
+    keyboard_thread.start()
+
     rclpy.spin(offboard_control)
 
     offboard_control.destroy_node()

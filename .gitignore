@@ -1,3 +1,23 @@
-ws_ros2/build
-ws_ros2/install
-ws_ros2/log
+# Fichiers de compilation ROS 2
+**/build/
+**/install/
+**/log/
+
+# Fichiers Python et caches
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+
+# Logs et traces PX4 / Gazebo
+*.log
+.ros/
+.gazebo/
+.ignition/
+
+# Fichiers d'environnement système
+.DS_Store
+*.swp
+*~

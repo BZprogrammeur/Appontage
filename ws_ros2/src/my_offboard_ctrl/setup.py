@@ -20,7 +20,17 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'offboard_ctrl_example = my_offboard_ctrl.offboard_ctrl_example:main'
+            'offboard_ctrl_example = my_offboard_ctrl.offboard_ctrl_example:main',
+            'control_keyboard = my_offboard_ctrl.control_keyboard:main',
+            'telemetry_pub = my_offboard_ctrl.drone_telemetry_publisher:main',
+            'drone_controller = my_offboard_ctrl.drone_controller:main',
+            'actions_executer = my_offboard_ctrl.actions_executer:main',
+            'action_executer_attitudeThrust = my_offboard_ctrl.action_executer_attitudeThrust:main',
+            'test_attitudeThrust = my_offboard_ctrl.test_attitudeThrust:main',
+            'landing = my_offboard_ctrl.landing_PID:main',
+            'test_vent = my_offboard_ctrl.test_vent:main',
+            'action_train_speed = my_offboard_ctrl.action_train_speed:main',
+            'action_speed = my_offboard_ctrl.action_speed:main',
         ],
     },
 )

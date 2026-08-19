@@ -1,21 +1,30 @@
 #!/usr/bin/env python3
-
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, DurabilityPolicy
 from px4_msgs.msg import OffboardControlMode, TrajectorySetpoint, VehicleCommand, VehicleLocalPosition, VehicleStatus
+from std_msgs.msg import Float32MultiArray
 
 # Camera module
 import cv2
 from .gzcam import GzCam
 import threading
 
+import sys
+import termios
+import tty
 
-class OffboardControl(Node):
-    """Node for controlling a vehicle in offboard mode."""
+def launch_cam_receiver():
+  cam = GzCam("/camera", (640,480))
+  while True:
+    img = cam.get_next_image()
+    cv2.imshow('pic-display', img)
+    cv2.waitKey(1)
 
+class TestVent(Node):
+    """Node for executing of actions received from the model."""
     def __init__(self) -> None:
-        super().__init__('offboard_control_takeoff_and_land')
+        super().__init__('test_vent')
 
         # Configure QoS profile for publishing and subscribing
         qos_profile = QoSProfile(
@@ -38,15 +47,23 @@ class OffboardControl(Node):
             VehicleLocalPosition, '/fmu/out/vehicle_local_position', self.vehicle_local_position_callback, qos_profile)
         self.vehicle_status_subscriber = self.create_subscription(
             VehicleStatus, '/fmu/out/vehicle_status', self.vehicle_status_callback, qos_profile)
+        self.drone_state_suscriber = self.create_subscription(Float32MultiArray, '/drone/state', self.drone_state_callback, 10)
 
         # Initialize variables
         self.offboard_setpoint_counter = 0
         self.vehicle_local_position = VehicleLocalPosition()
         self.vehicle_status = VehicleStatus()
-        self.takeoff_height = -1.5
+        self.takeoff_height = -5.6
+        self.landing_height = -0.7
+        self.state = "TAKEOFF"  # States: TAKEOFF, TRACKING, LANDING
+        self.pose = [0.0] * 12  # [x, y, z, roll, pitch, yaw, vx, vy, vz, wr, wp, wy]
 
-        # Create a timer to publish control commands
-        self.timer = self.create_timer(0.1, self.timer_callback)
+        self.x_target = 3.2
+        self.y_target = 3.1
+        self.z_target = 0.0
+
+        self.timer = self.create_timer(0.1, self.timer_callback) # 10Hz
+        self.offboard_setpoint_counter = 0
 
     def vehicle_local_position_callback(self, vehicle_local_position):
         """Callback function for vehicle_local_position topic subscriber."""
@@ -56,11 +73,15 @@ class OffboardControl(Node):
         """Callback function for vehicle_status topic subscriber."""
         self.vehicle_status = vehicle_status
 
+    def drone_state_callback(self, msg):
+        """Callback function for drone state topic subscriber."""
+        self.pose = msg.data
+
     def arm(self):
-        """Send an arm command to the vehicle."""
-        self.publish_vehicle_command(
-            VehicleCommand.VEHICLE_CMD_COMPONENT_ARM_DISARM, param1=1.0)
-        self.get_logger().info('Arm command sent')
+            """Send an arm command to the vehicle."""
+            self.publish_vehicle_command(
+                VehicleCommand.VEHICLE_CMD_COMPONENT_ARM_DISARM, param1=1.0)
+            self.get_logger().info('Arm command sent')
 
     def disarm(self):
         """Send a disarm command to the vehicle."""
@@ -78,26 +99,6 @@ class OffboardControl(Node):
         """Switch to land mode."""
         self.publish_vehicle_command(VehicleCommand.VEHICLE_CMD_NAV_LAND)
         self.get_logger().info("Switching to land mode")
-
-    def publish_offboard_control_heartbeat_signal(self):
-        """Publish the offboard control mode."""
-        msg = OffboardControlMode()
-        msg.position = True
-        msg.velocity = False
-        msg.acceleration = False
-        msg.attitude = False
-        msg.body_rate = False
-        msg.timestamp = int(self.get_clock().now().nanoseconds / 1000)
-        self.offboard_control_mode_publisher.publish(msg)
-
-    def publish_position_setpoint(self, x: float, y: float, z: float):
-        """Publish the trajectory setpoint."""
-        msg = TrajectorySetpoint()
-        msg.position = [x, y, z]
-        msg.yaw = 0.  # (0 degree)
-        msg.timestamp = int(self.get_clock().now().nanoseconds / 1000)
-        self.trajectory_setpoint_publisher.publish(msg)
-        self.get_logger().info(f"Publishing position setpoints {[x, y, z]}")
 
     def publish_vehicle_command(self, command, **params) -> None:
         """Publish a vehicle command."""
@@ -118,44 +119,63 @@ class OffboardControl(Node):
         msg.timestamp = int(self.get_clock().now().nanoseconds / 1000)
         self.vehicle_command_publisher.publish(msg)
 
-    def timer_callback(self):
-        self.publish_offboard_control_heartbeat_signal()
+    def publish_position_setpoint(self, x: float, y: float, z: float):
+        """Publish the trajectory setpoint."""
+        msg = TrajectorySetpoint()
+        msg.position = [x, y, z]
+        msg.yaw = 0.  # (0 degree)
+        msg.timestamp = int(self.get_clock().now().nanoseconds / 1000)
+        self.trajectory_setpoint_publisher.publish(msg)
+        self.get_logger().info(f"Publishing position setpoints {[x, y, z]}")
 
-        if self.offboard_setpoint_counter == 10:
+    def publish_velocity_setpoint(self, vx: float, vy: float, vz: float):
+        """Publish the trajectory setpoint."""
+        msg = TrajectorySetpoint()
+        msg.velocity = [vx, vy, vz]
+        msg.timestamp = int(self.get_clock().now().nanoseconds / 1000)
+        self.trajectory_setpoint_publisher.publish(msg)
+        self.get_logger().info(f"Publishing velocity setpoints {[vx, vy, vz]}")
+
+    def publish_offboard_control_mode(self):
+        """Indique à PX4 quelles commandes il doit écouter."""
+        msg = OffboardControlMode()
+        msg.position = True
+        msg.velocity = False
+        msg.acceleration = False
+        msg.attitude = False
+        msg.body_rate = False
+        msg.timestamp = int(self.get_clock().now().nanoseconds / 1000)
+        self.offboard_control_mode_publisher.publish(msg)
+
+    def timer_callback(self):
+        """Boucle de contrôle principale."""      
+        self.publish_offboard_control_mode()
+
+        if self.offboard_setpoint_counter < 10:
+            self.offboard_setpoint_counter += 1
+        elif self.offboard_setpoint_counter == 10:
             self.engage_offboard_mode()
             self.arm()
-
-        # FORCER le setpoint (test)
-        self.publish_position_setpoint(0.0, 0.0, -1.5)
-
-        self.offboard_setpoint_counter += 1
-
-
-# Camera module
-def launch_cam_receiver():
-  cam = GzCam("/camera", (640,480))
-  while True:
-    img = cam.get_next_image()
-    cv2.imshow('pic-display', img)
-    cv2.waitKey(1)
-
+            self.offboard_setpoint_counter += 1
+        else:
+            self.publish_position_setpoint(0.0, 0.0, self.takeoff_height)
 
 def main(args=None) -> None:
+    """
     print('Starting camera...')
     cam_thread = threading.Thread(target=launch_cam_receiver)
+    cam_thread.daemon = True
     cam_thread.start()
-
-    print('Starting offboard control node...')
+    """
+    print('Starting actions executer node...')
     rclpy.init(args=args)
-    offboard_control = OffboardControl()
-    rclpy.spin(offboard_control)
 
-    offboard_control.destroy_node()
+    node = TestVent()
+
+    rclpy.spin(node)
+
+    node.destroy_node()
     rclpy.shutdown()
 
-
 if __name__ == '__main__':
-    try:
-        main()
-    except Exception as e:
-        print(e)
+    main()

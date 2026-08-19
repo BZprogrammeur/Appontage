@@ -1,0 +1,2 @@
+echo 'export GZ_SIM_SYSTEM_PLUGIN_PATH=~/ros2_ws/install/wind_plugin/lib/wind_plugin' >> ~/.bashrc
+source ~/.bashrc

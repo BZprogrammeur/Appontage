@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>wind_plugin</name>
+  <version>1.0.0</version>
+  <description>Plugin de vent pour Gazebo Sim 7 / ROS 2</description>
+  <maintainer email="noe.lemaistre@ensta.fr">lemaistre</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>geometry_msgs</depend>
+  <depend>ros_gz_sim</depend>
+
+  <build_depend>gz-sim7</build_depend>
+  <build_depend>gz-plugin2</build_depend>
+</package>

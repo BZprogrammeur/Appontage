@@ -1,88 +1,81 @@
-# PX4-ROS2-Gazebo Drone Simulation Template
+Ce projet consiste en la réalisation d'une simulation pour une validation sim2real et sim2sim d'un modèle d'IA contrôlant un drône
 
-This repository provides a template to set up a simulation environment for a quadcopter equipped with a camera. It integrates PX4, Gazebo Harmonic, and ROS2 Humble, enabling the development and testing of software for a drone with a companion computer. This environment is ideal for mission planning and computer vision applications. A Python example script is included to demonstrate how to control the drone and access the camera feed, serving as a starting point for further development.
 
-![Overview gif](media/1.gif) 
+Bonne commande ocean :
 
-## Directory Structure
+PX4_SYS_AUTOSTART=4010   PX4_SIM_MODEL=gz_x500_mono_cam   PX4_GZ_MODEL_POSE="2,2,1,0,0,0.9"   PX4_GZ_WORLD=ocean   PX4-Autopilot/build/px4_sitl_default/bin/px4
 
-- **`PX4-Autopilot_PATCH/`**  
-  Contains custom worlds, models, and configurations to be copied into the PX4 installation. These files extend the default PX4 setup with additional simulation environments and drone models.
+xhost +local:docker
 
-- **`ws_ros2/`**  
-  The ROS2 workspace where custom ROS2 nodes are developed and built. It includes the `my_offboard_ctrl` package, providing an example of drone control using ROS2.
+pkill -9 -f gz && pkill -9 -f ruby && pkill -9 -f px4
 
-## Installation
+microXRCE :
 
-This setup is tested on Ubuntu 22.04 and is not compatible with its derivatives (e.g., Linux Mint).
+cd /home/Micro-XRCE-DDS-Agent/build
+./MicroXRCEAgent udp4 -p 8888
 
-1. Clone the repository and run the installation script:
-   ```bash
-   cd ~
-   git clone --recursive https://github.com/SathanBERNARD/PX4-ROS2-Gazebo-Drone-Simulation-Template.git
-   cd ~/PX4-ROS2-Gazebo-Drone-Simulation-Template
-   ./install_px4_gz_ros2_for_ubuntu.sh
-   ```
+Node ros2 :
 
-2. Copy the custom worlds and models into the PX4 installation:
-   ```bash
-   cd ~/PX4-ROS2-Gazebo-Drone-Simulation-Template
-   cp -r ./PX4-Autopilot_PATCH/* ~/PX4-Autopilot/
-   ```
+cd home/PX4-ROS2-Gazebo-Drone-Simulation-Template/ws_ros2
+source install/local_setup.bash
+ros2 run  my_offboard_ctrl control_keyboard
 
-3. Install **QGroundControl**.
+ros
+Doc : 
 
-## Usage (First Launch)
+https://journals.sagepub.com/doi/abs/10.1177/0954406217739647 #bateau chinois relié à une plateforme
+https://www.scs-ingenierie.com/pdf/cours/Houles.pdf #type de houles en français
+https://www.shf-lhb.org/articles/lhb/pdf/1986/03/lhb1986032.pdf fct transfert du bateau avec ref en bio
+https://theses.hal.science/tel-00011323/file/these.pdf
 
-### 1. Launch QGroundControl
+https://sci-hub.fr/10.1007/s10846-017-0757-5 #etat de l'art atterissage
+https://www.researchgate.net/publication/336019875_Dynamic_Landing_of_an_Autonomous_Quadrotor_on_a_Moving_Platform_in_Turbulent_Wind_Conditions
+https://www.preprints.org/frontend/manuscript/299e67e2e68a0ff6d6e241a437014fbc/download_pub
 
-- Open **QGroundControl**.
+https://github.com/QuadCtrl/quad-ctrl #DRL pour contrôle
+https://arc.aiaa.org/doi/10.2514/6.2021-1018
 
-### 2. Start the Micro XRCE-DDS Agent
+https://www.researchgate.net/figure/Comparison-between-DRL-and-PID-controller_fig11_367638938 #comparaison DRL/PID
+https://www.mdpi.com/1996-1073/15/8/2834 #reacteur
 
-- In a new terminal, start the Micro XRCE-DDS Agent:
-  ```bash
-  MicroXRCEAgent udp4 -p 8888
-  ```
-  The Micro XRCE-DDS Agent allows uORB messages to be published and subscribed to on a companion computer as ROS 2 topics.
+https://resiliencemedia.co/launching-drones-at-sea-has-a-landing-problem-waiv-robotics-thinks-its-solved-it/ #utilisation de plateforme pour stabiliser le bateau
 
-  For more information, refer to the [uXRCE-DDS documentation](https://docs.px4.io/main/en/middleware/uxrce_dds.html).
+Commande docker :
 
-### 3. Run PX4 SITL and Gazebo
+lancement : docker run -it -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v /mnt/data/stage_lemaistre_2026/projet_appontage/Projet_appontage:/home ubuntu:22.04
 
-- In another terminal, launch PX4 SITL with Gazebo:
-  ```bash
-  PX4_SYS_AUTOSTART=4010 \
-  PX4_SIM_MODEL=gz_x500_mono_cam \
-  PX4_GZ_MODEL_POSE="1,1,0.1,0,0,0.9" \
-  PX4_GZ_WORLD=test_world \
-  ~/PX4-Autopilot/build/px4_sitl_default/bin/px4
-  ```
-  - `PX4_SYS_AUTOSTART=4010` defines the airframe to be used by PX4. The **4010** airframe is the default for **x500_mono_cam** and is equivalent to the **4001** airframe.
-  - `PX4_SIM_MODEL=gz_x500_mono_cam` specifies the model to load in Gazebo.
-  - `PX4_GZ_MODEL_POSE="1,1,0.1,0,0,0.9"` sets the initial pose of the vehicle.
-  - `PX4_GZ_WORLD=test_world` defines the Gazebo world to be loaded.
+docker run -it --gpus all -v $(pwd):/home/noe.lemaistre/Téléchargements/Drone-landing-main drone-rl-redhat \
+  python ppo_drone_obs_basic_tensorboard.py
 
-  Further information:
-  - [Gazebo Simulation Documentation](https://docs.px4.io/main/en/sim_gazebo_gz/)
-  - [Airframes Reference](https://docs.px4.io/main/en/airframes/airframe_reference.html)
-  - [4010 Airframe File](https://github.com/PX4/PX4-Autopilot/blob/main/ROMFS/px4fmu_common/init.d-posix/airframes/4010_gz_x500_mono_cam)
+si pb de proxy :
 
-  In case of error message `ERROR [gz_bridge] Service call timed out.` try again.
+export no_proxy="localhost,127.0.0.1,0.0.0.0,:"
+export NO_PROXY="localhost,127.0.0.1,0.0.0.0,:"
+unset http_proxy
+unset https_proxy
+unset HTTP_PROXY
+unset HTTPS_PROXY
 
-### 4. Build and Run the ROS2 Node (Companion Computer Software)
+ROS2 :
+ros2 interface show px4_msgs/msg/VehicleAttitudeSetpoint
 
-- In a new terminal, build and run the ROS2 node:
-  ```bash
-  cd ~/PX4-ROS2-Gazebo-Drone-Simulation-Template/ws_ros2
-  colcon build
-  source install/local_setup.bash
-  ros2 run my_offboard_ctrl offboard_ctrl_example
-  ```
+# Vent latéral + effet de roulis (roll autour de X)
+ros2 topic pub --once /wind/cmd wind_msgs/msg/WindCmd "{
+  force_mean: {x: 3.0, y: 0.0, z: 0.0},
+  force_variance: 0.5,
+  torque_mean: {x: 0.5, y: 0.0, z: 0.0},
+  torque_variance: 0.1,
+  gust_force_magnitude: 0.0,
+  gust_torque_magnitude: 0.3,
+  gust_frequency: 0.2
+}"
 
-- To build only the `my_offboard_ctrl` package:
-  ```bash
-  colcon build --packages-select my_offboard_ctrl
-  ```
+# Tout remettre à zéro
+ros2 topic pub --once /wind/cmd wind_msgs/msg/WindCmd "{
+  force_mean: {x: 0.0, y: 0.0, z: 0.0},
+  torque_mean: {x: 0.0, y: 0.0, z: 0.0}
+}"
 
-  For additional details, refer to the [ROS2 Package documentation](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Creating-Your-First-ROS2-Package.html).
+Sourcer : source /root/ros2_humble/install/setup.bash
+source /home/PX4-ROS2-Gazebo-Drone-Simulation-Template/ws_ros2/install/setup.bash
+export LD_LIBRARY_PATH=/home/PX4-ROS2-Gazebo-Drone-Simulation-Template/ws_ros2/install/wind_msgs/lib:$LD_LIBRARY_PATH

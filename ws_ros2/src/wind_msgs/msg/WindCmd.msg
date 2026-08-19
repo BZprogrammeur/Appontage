@@ -1,0 +1,9 @@
+geometry_msgs/Vector3 force_mean
+float64 force_variance
+
+geometry_msgs/Vector3 torque_mean
+float64 torque_variance
+
+float64 gust_force_magnitude
+float64 gust_torque_magnitude
+float64 gust_frequency

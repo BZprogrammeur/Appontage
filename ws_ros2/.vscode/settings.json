@@ -1,0 +1,15 @@
+{
+    "ros.distro": "humble",
+    "python.autoComplete.extraPaths": [
+        "/home/noe/PX4-ROS2-Gazebo-Drone-Simulation-Template/ws_ros2/install/px4_msgs/local/lib/python3.10/dist-packages",
+        "/home/noe/PX4-ROS2-Gazebo-Drone-Simulation-Template/ws_ros2/install/my_offboard_ctrl/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/noe/PX4-ROS2-Gazebo-Drone-Simulation-Template/ws_ros2/install/px4_msgs/local/lib/python3.10/dist-packages",
+        "/home/noe/PX4-ROS2-Gazebo-Drone-Simulation-Template/ws_ros2/install/my_offboard_ctrl/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}
