@@ -69,7 +69,7 @@ unset https_proxy
 unset HTTP_PROXY
 unset HTTPS_PROXY
 
-Exemple de commande pour envoyer du vent dans la simulation
+## Exemple de commande pour envoyer du vent dans la simulation
 
 ros2 topic pub --once /wind/cmd wind_msgs/msg/WindCmd "{
   force_mean: {x: 3.0, y: 0.0, z: 0.0},
@@ -87,3 +87,8 @@ ros2 topic pub --once /wind/cmd wind_msgs/msg/WindCmd "{
   force_mean: {x: 0.0, y: 0.0, z: 0.0},
   torque_mean: {x: 0.0, y: 0.0, z: 0.0}
 }"
+
+## Commande utiles au nettoyage
+pkill -9 -f gz && pkill -9 -f ruby && pkill -9 -f px4
+ros2 interface show px4_msgs/msg/VehicleAttitudeSetpoint
+ros2 interface show px4_msgs/msg/TrajectorySetpoint
