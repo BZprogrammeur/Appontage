@@ -28,11 +28,7 @@ Sur votre machine hôte, autorisez l'accès au serveur X11 :
 ```bash
 xhost +local:docker
 
-docker run -it --gpus all \
-  -e DISPLAY=$DISPLAY \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -v $(pwd):/home/PX4-ROS2-Gazebo-Drone-Simulation-Template \
-  ubuntu:22.04
+docker run -it --gpus all -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v /mnt/data/stage_lemaistre_2026/projet_appontage/Projet_appontage:/home ubuntu:22.04
 
 Pour lancer la simulation :
 
