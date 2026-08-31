@@ -1,6 +1,6 @@
 # Simulation d'Appontage Autonome de Drone (Sim2Sim & Sim2Real)
 
-Ce projet propose un environnement de simulation complet sous **PX4**, **Gazebo** et **ROS 2** pour l'entraînement et la validation (Sim2Sim / Sim2Real) de modèles d'intelligence artificielle (Deep Reinforcement Learning) dédiés à l'appontage autonome d'un drone quadricoptère sur une plateforme mobile (hexapode / houle marine) en présence de perturbations aérodynamiques (vent de Dryden / rafales).
+Ce projet propose un environnement de simulation complet sous **PX4**, **Gazebo** et **ROS 2** pour l'entraînement et la validation (Sim2Sim / Sim2Real) de modèles d'intelligence artificielle (Deep Reinforcement Learning).
 
 ---
 
@@ -27,47 +27,62 @@ Ce projet propose un environnement de simulation complet sous **PX4**, **Gazebo*
 Sur votre machine hôte, autorisez l'accès au serveur X11 :
 ```bash
 xhost +local:docker
+```
 
-
+### 2. Lancer le conteneur Docker
+```bash
 docker run -it --gpus all -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v /mnt/data/stage_lemaistre_2026/projet_appontage/Projet_appontage:/home ubuntu:22.04
+```
 
-Pour lancer la simulation :
-
+### 3. Lancer la simulation
+```bash
 /PX4-ROS2-Gazebo-Drone-Simulation-Template/launch_sim.sh
+```
 
-
+### 4. Arrêter les processus
+```bash
 pkill -9 -f gz && pkill -9 -f ruby && pkill -9 -f px4
+```
 
-microXRCE :
-
+### 5. Lancer microXRCE Agent
+```bash
 cd /home/Micro-XRCE-DDS-Agent/build
 ./MicroXRCEAgent udp4 -p 8888
+```
 
-Node ros2 :
+### 6. Lancer les nœuds ROS 2
+```bash
 source /root/ros2_humble/install/setup.bash
 cd /home/PX4-ROS2-Gazebo-Drone-Simulation-Template/ws_ros2
 source install/setup.bash
 export LD_LIBRARY_PATH=/home/PX4-ROS2-Gazebo-Drone-Simulation-Template/ws_ros2/install/wind_msgs/lib:$LD_LIBRARY_PATH
+```
 
-# Lancement du contrôleur clavier (téléopération de test) :
+Lancement du contrôleur clavier (téléopération de test) :
+```bash
 ros2 run my_offboard_ctrl control_keyboard
+```
 
-# Ou lancement de l'exécuteur d'actions pour le modèle d'IA, lancez dans 3 terminaux :
+Ou lancement de l'exécuteur d'actions pour le modèle d'IA (lancez dans 3 terminaux) :
+```bash
 ros2 run my_offboard_ctrl telemetry_pub
 ros2 run my_offboard_ctrl drone_controller
 ros2 run my_offboard_ctrl action_speed
+```
 
-si pb de proxy :
-
+### 7. Configuration du proxy (si nécessaire)
+```bash
 export no_proxy="localhost,127.0.0.1,0.0.0.0,:"
 export NO_PROXY="localhost,127.0.0.1,0.0.0.0,:"
 unset http_proxy
 unset https_proxy
 unset HTTP_PROXY
 unset HTTPS_PROXY
+```
 
 ## Exemple de commande pour envoyer du vent dans la simulation
 
+```bash
 ros2 topic pub --once /wind/cmd wind_msgs/msg/WindCmd "{
   force_mean: {x: 3.0, y: 0.0, z: 0.0},
   force_variance: 0.5,
@@ -77,15 +92,19 @@ ros2 topic pub --once /wind/cmd wind_msgs/msg/WindCmd "{
   gust_torque_magnitude: 0.3,
   gust_frequency: 0.2
 }"
+```
 
-Pour tout remettre à 0
-
+Pour tout remettre à 0 :
+```bash
 ros2 topic pub --once /wind/cmd wind_msgs/msg/WindCmd "{
   force_mean: {x: 0.0, y: 0.0, z: 0.0},
   torque_mean: {x: 0.0, y: 0.0, z: 0.0}
 }"
+```
 
-## Commande utiles au nettoyage
+## Commandes utiles au nettoyage
+```bash
 pkill -9 -f gz && pkill -9 -f ruby && pkill -9 -f px4
 ros2 interface show px4_msgs/msg/VehicleAttitudeSetpoint
 ros2 interface show px4_msgs/msg/TrajectorySetpoint
+```
