@@ -33,7 +33,7 @@ xhost +local:docker
 ```bash
 docker run -it --gpus all -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v /mnt/data/stage_lemaistre_2026/projet_appontage/Projet_appontage:/home ubuntu:22.04
 ```
-Il faut faire attention au fichier que l'on bind, ici il faut remplacer /mnt/data/stage_lemaistre_2026/projet_appontage/Projet_appontage par le dossier du projet qui se trouve sur la machine réelle.
+Il faut faire attention au fichier que l'on bind, ici il faut remplacer /mnt/data/stage_lemaistre_2026/projet_appontage/Projet_appontage par le dossier du projet qui se trouve sur la machine réelle. Dans l'image docker il n'y a que ros2 sur ubuntu22.04
 
 ### 3. Lancer la simulation
 Le fichier launch.sim permet de lancer la simulation
