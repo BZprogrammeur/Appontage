@@ -33,18 +33,22 @@ xhost +local:docker
 ```bash
 docker run -it --gpus all -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v /mnt/data/stage_lemaistre_2026/projet_appontage/Projet_appontage:/home ubuntu:22.04
 ```
+Il faut faire attention au fichier que l'on bind, ici il faut remplacer /mnt/data/stage_lemaistre_2026/projet_appontage/Projet_appontage par le dossier du projet qui se trouve sur la machine réelle.
 
 ### 3. Lancer la simulation
+Le fichier launch.sim permet de lancer la simulation
 ```bash
 /PX4-ROS2-Gazebo-Drone-Simulation-Template/launch_sim.sh
 ```
 
 ### 4. Arrêter les processus
+Si on a mal fermé gazebo
 ```bash
 pkill -9 -f gz && pkill -9 -f ruby && pkill -9 -f px4
 ```
 
 ### 5. Lancer microXRCE Agent
+Il fait le lien entre ROS2 et PX4, en lançant la commande suivante dans un terminal on leur permet de communiquer.
 ```bash
 cd /home/Micro-XRCE-DDS-Agent/build
 ./MicroXRCEAgent udp4 -p 8888
@@ -71,6 +75,8 @@ ros2 run my_offboard_ctrl action_speed
 ```
 
 ### 7. Configuration du proxy (si nécessaire)
+Il se peut que le proxy de l'école bloque la communication entre le noeud telemetry et le noeud controller car il publie sur le réseau local. Dans ce cas ces commandes peuvent être utiles.
+
 ```bash
 export no_proxy="localhost,127.0.0.1,0.0.0.0,:"
 export NO_PROXY="localhost,127.0.0.1,0.0.0.0,:"
@@ -81,6 +87,7 @@ unset HTTPS_PROXY
 ```
 
 ## Exemple de commande pour envoyer du vent dans la simulation
+Ouvrir un terminal et ne pas oublier de sourcer ROS2.
 
 ```bash
 ros2 topic pub --once /wind/cmd wind_msgs/msg/WindCmd "{
@@ -100,11 +107,4 @@ ros2 topic pub --once /wind/cmd wind_msgs/msg/WindCmd "{
   force_mean: {x: 0.0, y: 0.0, z: 0.0},
   torque_mean: {x: 0.0, y: 0.0, z: 0.0}
 }"
-```
-
-## Commandes utiles au nettoyage
-```bash
-pkill -9 -f gz && pkill -9 -f ruby && pkill -9 -f px4
-ros2 interface show px4_msgs/msg/VehicleAttitudeSetpoint
-ros2 interface show px4_msgs/msg/TrajectorySetpoint
 ```
