@@ -1,6 +1,6 @@
 # Simulation d'Appontage Autonome de Drone (Sim2Sim & Sim2Real)
+Ce projet propose un environnement de simulation complet sous **PX4**, **Gazebo** et **ROS 2** pour l'entraînement et la validation (Sim2Sim / Sim2Real) de modèles d'intelligence artificielle (Deep Reinforcement Learning) dédiés à l'appontage autonome d'un drone quadricoptère sur une plateforme mobile (hexapode / houle marine) en présence de perturbations aérodynamiques (vent de Dryden / rafales).
 
-Ce projet propose un environnement de simulation complet sous **PX4**, **Gazebo** et **ROS 2** pour l'entraînement et la validation (Sim2Sim / Sim2Real) de modèles d'intelligence artificielle (Deep Reinforcement Learning).
 
 ---
 
