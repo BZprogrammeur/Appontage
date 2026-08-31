@@ -108,6 +108,9 @@ ros2 topic pub --once /wind/cmd wind_msgs/msg/WindCmd "{
   torque_mean: {x: 0.0, y: 0.0, z: 0.0}
 }"
 ```
+## Pour envoyer de la houle
+lancer simplement le programme sim_wave_v2, choisissez les paramètres directement dans le programme.
+
 ## Si PX4 n'est pas installé correctement sur l'image :
 Il faut alors cloner un git contenant PX4  et l'installer en utilisant ces commandes
 
@@ -119,4 +122,5 @@ cd ~/PX4-ROS2-Gazebo-Drone-Simulation-Template
 ```
 
 Ensuite il faut copier le fichier du monde gazebo ocean.sdf présent sur ce git dans /PX4-Autopilot/Tools/simulation/gz/worlds
-Il faut également copier les dossiers plateforme_hexapode, x650, x650_base et x650_camera dans /PX4-Autopilot/Tools/simulation/gz/models
+Il faut également copier les dossiers plateforme_hexapode, mono_cam, x650, x650_base et x650_camera dans /PX4-Autopilot/Tools/simulation/gz/models
+Ils sont tous présnets dans objet.zip. En cas de manque de mesh ou de texture ne pas hésiter à la retirer du fichier sdf du monde.
