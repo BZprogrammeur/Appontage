@@ -108,3 +108,15 @@ ros2 topic pub --once /wind/cmd wind_msgs/msg/WindCmd "{
   torque_mean: {x: 0.0, y: 0.0, z: 0.0}
 }"
 ```
+## Si PX4 n'est pas installé correctement sur l'image :
+Il faut alors cloner un git contenant PX4  et l'installer en utilisant ces commandes
+
+```bash
+cd ~
+git clone --recursive https://github.com/SathanBERNARD/PX4-ROS2-Gazebo-Drone-Simulation-Template.git
+cd ~/PX4-ROS2-Gazebo-Drone-Simulation-Template
+./install_px4_gz_ros2_for_ubuntu.sh
+```
+
+Ensuite il faut copier le fichier du monde gazebo ocean.sdf présent sur ce git dans /PX4-Autopilot/Tools/simulation/gz/worlds
+Il faut également copier les dossiers plateforme_hexapode, x650, x650_base et x650_camera dans /PX4-Autopilot/Tools/simulation/gz/models
