@@ -20,8 +20,30 @@ Ce projet propose un environnement de simulation complet sous **PX4**, **Gazebo*
 - Serveur d'affichage X11 configuré pour le rendu graphique depuis Docker
 
 ---
+### Installation
+Lancer le fichier d'installation présent sur le git pour installer ROS2, GAZEBO, PX4 et Micro XRCE
 
-## Guide d'Installation et de Démarrage
+```bash
+./install_px4_gz_ros2_for_ubuntu.sh
+```
+Mais il faut aussi installer les dépendances liées à stablebaseline :
+
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+pip install stable-baselines3 gymnasium
+```
+Il faut également installer le pont entre ros2 et gazebo
+
+```bash
+sudo apt-get install -y ros-humble-ros-gzharmonic ros-humble-ros-gz-bridge
+```
+Une fois celà fait le docker prêt, pendant le lancement il faudra le monter avec comme point de montage l'endroit où vous avez cloné le git
+
+Ensuite il faut copier le fichier du monde gazebo ocean.sdf présent sur ce git dans /PX4-Autopilot/Tools/simulation/gz/worlds
+Il faut également copier les dossiers plateforme_hexapode, mono_cam, x650, x650_base et x650_camera dans /PX4-Autopilot/Tools/simulation/gz/models
+Ils sont tous présnets dans objet.zip. En cas de manque de mesh ou de texture ne pas hésiter à la retirer du fichier sdf du monde.
+
+## Guide de Démarrage
 
 ### 1. Préparation de l'hôte (Affichage X11)
 Sur votre machine hôte, autorisez l'accès au serveur X11 :
@@ -60,6 +82,11 @@ source /root/ros2_humble/install/setup.bash
 cd /home/PX4-ROS2-Gazebo-Drone-Simulation-Template/ws_ros2
 source install/setup.bash
 export LD_LIBRARY_PATH=/home/PX4-ROS2-Gazebo-Drone-Simulation-Template/ws_ros2/install/wind_msgs/lib:$LD_LIBRARY_PATH
+```
+Ne pas oublier de les compiler avant
+
+```bash
+colcon build
 ```
 
 Lancement du contrôleur clavier (téléopération de test) :
@@ -111,16 +138,5 @@ ros2 topic pub --once /wind/cmd wind_msgs/msg/WindCmd "{
 ## Pour envoyer de la houle
 lancer simplement le programme sim_wave_v2, choisissez les paramètres directement dans le programme.
 
-## Si PX4 n'est pas installé correctement sur l'image :
-Il faut alors cloner un git contenant PX4  et l'installer en utilisant ces commandes
 
-```bash
-cd ~
-git clone --recursive https://github.com/SathanBERNARD/PX4-ROS2-Gazebo-Drone-Simulation-Template.git
-cd ~/PX4-ROS2-Gazebo-Drone-Simulation-Template
-./install_px4_gz_ros2_for_ubuntu.sh
-```
 
-Ensuite il faut copier le fichier du monde gazebo ocean.sdf présent sur ce git dans /PX4-Autopilot/Tools/simulation/gz/worlds
-Il faut également copier les dossiers plateforme_hexapode, mono_cam, x650, x650_base et x650_camera dans /PX4-Autopilot/Tools/simulation/gz/models
-Ils sont tous présnets dans objet.zip. En cas de manque de mesh ou de texture ne pas hésiter à la retirer du fichier sdf du monde.
