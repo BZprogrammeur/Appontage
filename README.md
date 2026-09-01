@@ -20,7 +20,7 @@ Ce projet propose un environnement de simulation complet sous **PX4**, **Gazebo*
 - Serveur d'affichage X11 configuré pour le rendu graphique depuis Docker
 
 ---
-### Installation
+## Installation
 Lancer le fichier d'installation présent sur le git pour installer ROS2, GAZEBO, PX4 et Micro XRCE
 
 ```bash
